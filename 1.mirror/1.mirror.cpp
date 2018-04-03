@@ -1,7 +1,4 @@
-// ewoosoft_1.mirror.cpp : 콘솔 응용 프로그램에 대한 진입점을 정의합니다.
-//
-
-#include "stdafx.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 #define MIN_POS		(-1000000)
@@ -13,11 +10,17 @@ struct point_tag
 	int y;
 };
 
+enum use_status_tag
+{
+	NON_USE,
+	USED,
+};
+
 struct fence_tag
 {
 	struct point_tag point;
 	char mirror;
-	bool used;
+	enum use_status_tag use_status;
 };
 
 enum x_or_y_axis_tag
@@ -57,16 +60,16 @@ int get_input()
 		scanf("%d %d %c", &fences[i].point.x, &fences[i].point.y, &fences[i].mirror);
 
 		if (((fences[i].point.x < MIN_POS) ||
-			(fences[i].point.x > MAX_POS) ||
-			(fences[i].point.y < MIN_POS) ||
-			(fences[i].point.y > MAX_POS)) ||
+			 (fences[i].point.x > MAX_POS) ||
+			 (fences[i].point.y < MIN_POS) ||
+			 (fences[i].point.y > MAX_POS)) ||
 			((fences[i].mirror != '/') &&
-			(fences[i].mirror != '\\'))) {
+			 (fences[i].mirror != '\\'))) {
 			free(fences);
 			return -1;
 		}
 
-		fences[i].used = false;
+		fences[i].use_status = NON_USE;
 	}
 
 	return 0;
@@ -111,7 +114,7 @@ int find_next_fence(struct point_tag *point, enum x_or_y_axis_tag xy_way, enum p
 	if (min_i == (N + 1)) {
 		min_i = -1;
 	}
-	else if (fences[min_i].used == true) {
+	else if (fences[min_i].use_status == USED) {
 		min_i = -1;
 	}
 
@@ -143,14 +146,15 @@ int move_next_fence(struct point_tag *point, enum x_or_y_axis_tag xy_way, enum p
 	}
 
 	fence = &fences[next_i];
-	fence->used = true;
+	fence->use_status = USED;
 	next_xy_way = (xy_way == X_AXIS) ? Y_AXIS : X_AXIS;
 	if (turn_cnt < 1) {
 		next_sign_way = calculate_next_sign_way(xy_way, point, fence);
 		next_sign_way = (next_sign_way == PLUS_WAY) ? MINUS_WAY : PLUS_WAY;
 		result_i = move_next_fence(&fence->point, next_xy_way, next_sign_way, turn_cnt + 1);
-		if (result_i == 0)
+		if (result_i == 0) {
 			return next_i;
+		}
 	}
 
 	next_sign_way = calculate_next_sign_way(xy_way, point, fence);
@@ -158,8 +162,7 @@ int move_next_fence(struct point_tag *point, enum x_or_y_axis_tag xy_way, enum p
 	return result_i;
 }
 
-
-int main(int argc, char* argv[])
+int main(void)
 {
 	int result;
 	struct point_tag house_point;
@@ -176,7 +179,6 @@ int main(int argc, char* argv[])
 	turn_cnt = 0;
 
 	result_i = move_next_fence(&house_point, X_AXIS, PLUS_WAY, turn_cnt);
-
 	printf("%d \n", result_i);
 
 	free(fences);

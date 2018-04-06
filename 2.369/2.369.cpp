@@ -107,4 +107,6 @@ int main(void)
 	b369cnt = get369cnt(b,     0, 0);
 
 	printf("%d \n", b369cnt - a369cnt);
+	
+	return 0;
 }
